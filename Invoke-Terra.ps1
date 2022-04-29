@@ -44,9 +44,10 @@ Path of package
 #####################################################
 # Invoke-Terra
 #####################################################
-
 [CmdletBinding(SupportsShouldProcess)]
 Param(
+	[Parameter(Mandatory=$false)] #Init,Plan,Apply,Full
+	[string] $path = "",
 	[Parameter(Mandatory=$false)] #Init,Plan,Apply,Full
 	[string] $mode = "full",
 	[Parameter(Mandatory=$false)]
@@ -68,6 +69,8 @@ begin {
 process {
 	if (!$output) { $output = $name }
 
+	$origpath = $path ? $path : "$(Get-Location)"
+	if ($path) { Set-Location $path }
 	if (@('full','init') -contains $mode)
 	{
 		$backendconfig = Get-ConfigFile 'tfbackend'
@@ -103,4 +106,5 @@ process {
 }
 end {
 	Write-Verbose "$PSScriptName $name $output $backendconfig $varfile end"
+	if ($origpath -ne $path) { Set-Location $origpath }
 }

@@ -27,6 +27,7 @@ Invoke-Terra
 ## Release Notes
 - 0.1 init
 - 0.2 added mode: Full,Init,Plan,Apply
+- 0.3 added path param
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)
