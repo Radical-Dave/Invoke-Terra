@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.1
+.VERSION 0.2
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -47,6 +47,8 @@ Path of package
 
 [CmdletBinding(SupportsShouldProcess)]
 Param(
+	[Parameter(Mandatory=$false)] #Init,Plan,Apply,Full
+	[string] $mode = "full",
 	[Parameter(Mandatory=$false)]
 	[string] $name = "main",
 	[Parameter(Mandatory=$false)]
@@ -65,29 +67,39 @@ begin {
 }
 process {
 	if (!$output) { $output = $name }
-	$backendconfig = Get-ConfigFile 'tfbackend'
-	# if (!$backendconfig -and (Test-Path "*.tfbackend*"))
-	# {
-	# 	if (Test-Path "*.tfbackend.user") { $backendconfig = ".tfbackend.user" } 
-	# 	elseif (Test-Path ".tfbackend") { $backendconfig = ".tfbackend"}
-	# }
-	$varfile = Get-ConfigFile 'tfvars'
-	# if (!$varfile -and (Test-Path "*.tfvars*"))
-	# {
-	# 	if (Test-Path "*.tfvars.user") { $varfile = ".tfvars.user" } 
-	# 	elseif (Test-Path ".tfvars") { $varfile = ".tfvars"}
-	# }
-	if (!$backendconfig) {
-		terraform.exe init
-	} else {
-		terraform.exe init -backend-config="$backendconfig"
+
+	if (@('full','init') -contains $mode)
+	{
+		$backendconfig = Get-ConfigFile 'tfbackend'
+		# if (!$backendconfig -and (Test-Path "*.tfbackend*"))
+		# {
+		# 	if (Test-Path "*.tfbackend.user") { $backendconfig = ".tfbackend.user" } 
+		# 	elseif (Test-Path ".tfbackend") { $backendconfig = ".tfbackend"}
+		# }	
+		if (!$backendconfig) {
+			terraform.exe init
+		} else {
+			terraform.exe init -backend-config="$backendconfig"
+		}
 	}
-	if (!$varfile) {
-		terraform.exe plan -out="$output.tfplan"
-	} else {
-		terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
+	if (@('full','plan') -contains $mode)
+	{
+		$varfile = Get-ConfigFile 'tfvars'
+		# if (!$varfile -and (Test-Path "*.tfvars*"))
+		# {
+		# 	if (Test-Path "*.tfvars.user") { $varfile = ".tfvars.user" } 
+		# 	elseif (Test-Path ".tfvars") { $varfile = ".tfvars"}
+		# }
+		if (!$varfile) {
+			terraform.exe plan -out="$output.tfplan"
+		} else {
+			terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
+		}
 	}
-	terraform.exe apply "$output.tfplan"
+	if (@('full','apply') -contains $mode)
+	{
+		terraform.exe apply "$output.tfplan"
+	}
 }
 end {
 	Write-Verbose "$PSScriptName $name $output $backendconfig $varfile end"
