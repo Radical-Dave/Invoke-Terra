@@ -30,6 +30,7 @@ Invoke-Terra
 - 0.3 added path param
 - 0.4 fixed paths and added $error checks
 - 0.5 added mode: Clean
+- 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

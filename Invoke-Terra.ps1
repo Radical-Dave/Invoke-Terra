@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.5
+.VERSION 0.6
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -34,6 +34,7 @@
 - 0.3 added path param
 - 0.4 fixed paths and added $error checks
 - 0.5 added mode: Clean
+- 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 #>
 
 <# 
@@ -78,12 +79,15 @@ process {
 		Write-Verbose "Set-Location: $path"
 		Set-Location $path
 	}
+	Write-Verbose "mode: $mode"
 	if ($mode -eq "clean") {
-		remove-item terraform.tfstate
-		remove-item *.terraform* -Recurse
+		Write-Verbose "cleaning"
+		remove-item terraform.tfstate -ErrorAction "SilentlyContinue"
+		remove-item *.terraform* -Recurse -ErrorAction "SilentlyContinue"
 	}
 	$error.Clear()	
 	if (@('full','init') -contains $mode) {
+		Write-Verbose "init"
 		$backendconfig = Get-ConfigFile 'tfbackend'
 		Write-Verbose "backendconfig:$backendconfig"
 		if (!$backendconfig) {
@@ -102,6 +106,7 @@ process {
 			if (!$varfile) {
 				terraform.exe plan -out="$output.tfplan"
 			} else {
+				Write-Verbose "varfile:$varfile"
 				terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
 			}
 		}
