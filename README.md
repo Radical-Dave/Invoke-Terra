@@ -33,6 +33,7 @@ Invoke-Terra
 - 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 - 0.7 added clean to init
 - 0.8 added -compact-warnings -input=false
+- 0.9 added *.tfplan to clean
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

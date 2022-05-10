@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.8
+.VERSION 0.9
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -37,6 +37,7 @@
 - 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 - 0.7 added clean to init
 - 0.8 added -compact-warnings -input=false
+- 0.9 added *.tfplan to clean
 #>
 
 <# 
@@ -84,6 +85,7 @@ process {
 	Write-Verbose "mode: $mode"
 	if ($mode -eq "clean") {
 		Write-Verbose "cleaning"
+		remove-item *.tfplan -ErrorAction "SilentlyContinue"
 		remove-item terraform.tfstate -ErrorAction "SilentlyContinue"
 		remove-item *.terraform* -Recurse -ErrorAction "SilentlyContinue"
 	}
