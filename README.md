@@ -32,6 +32,7 @@ Invoke-Terra
 - 0.5 added mode: Clean
 - 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 - 0.7 added clean to init
+- 0.8 added -compact-warnings -input=false
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

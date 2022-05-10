@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.7
+.VERSION 0.8
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -36,6 +36,7 @@
 - 0.5 added mode: Clean
 - 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
 - 0.7 added clean to init
+- 0.8 added -compact-warnings -input=false
 #>
 
 <# 
@@ -108,7 +109,7 @@ process {
 				terraform.exe plan -out="$output.tfplan"
 			} else {
 				Write-Verbose "varfile:$varfile"
-				terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
+				terraform.exe plan -var-file="$varfile" -out="$output.tfplan -compact-warnings -input=false"
 			}
 		}
 		if ($error) {
