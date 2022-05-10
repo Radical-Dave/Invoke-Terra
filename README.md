@@ -28,6 +28,8 @@ Invoke-Terra
 - 0.1 init
 - 0.2 added mode: Full,Init,Plan,Apply
 - 0.3 added path param
+- 0.4 fixed paths and added $error checks
+- 0.5 added mode: Clean
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

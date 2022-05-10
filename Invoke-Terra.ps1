@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.2
+.VERSION 0.5
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -29,7 +29,11 @@
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-
+- 0.1 init
+- 0.2 added mode: Full,Init,Plan,Apply
+- 0.3 added path param
+- 0.4 fixed paths and added $error checks
+- 0.5 added mode: Clean
 #>
 
 <# 
@@ -46,9 +50,9 @@ Path of package
 #####################################################
 [CmdletBinding(SupportsShouldProcess)]
 Param(
-	[Parameter(Mandatory=$false)] #Init,Plan,Apply,Full
+	[Parameter(Mandatory=$false)]
 	[string] $path = "",
-	[Parameter(Mandatory=$false)] #Init,Plan,Apply,Full
+	[Parameter(Mandatory=$false)] #Default/Full,Clean,Init,Plan,Apply
 	[string] $mode = "full",
 	[Parameter(Mandatory=$false)]
 	[string] $name = "main",
@@ -64,47 +68,64 @@ begin {
 	$ErrorActionPreference = 'Stop'
 	$PSScriptName = ($MyInvocation.MyCommand.Name.Replace(".ps1",""))
 	$PSCallingScript = if ($MyInvocation.PSCommandPath) { $MyInvocation.PSCommandPath | Split-Path -Parent } else { $null }
-	Write-Verbose "$PSScriptRoot\$PSScriptName $name $output $backendconfig $varfile called by:$PSCallingScript"
+	Write-Verbose "$PSScriptRoot\$PSScriptName $path $mode $name $output $backendconfig $varfile called by:$PSCallingScript"
 }
 process {
 	if (!$output) { $output = $name }
-
-	$origpath = $path ? $path : "$(Get-Location)"
-	if ($path) { Set-Location $path }
-	if (@('full','init') -contains $mode)
-	{
+	$origpath = $(Get-Location)
+	if ($path) {
+		Write-Verbose "Get-Location: $origpath"
+		Write-Verbose "Set-Location: $path"
+		Set-Location $path
+	}
+	if ($mode -eq "clean") {
+		remove-item terraform.tfstate
+		remove-item *.terraform* -Recurse
+	}
+	$error.Clear()	
+	if (@('full','init') -contains $mode) {
 		$backendconfig = Get-ConfigFile 'tfbackend'
-		# if (!$backendconfig -and (Test-Path "*.tfbackend*"))
-		# {
-		# 	if (Test-Path "*.tfbackend.user") { $backendconfig = ".tfbackend.user" } 
-		# 	elseif (Test-Path ".tfbackend") { $backendconfig = ".tfbackend"}
-		# }	
+		Write-Verbose "backendconfig:$backendconfig"
 		if (!$backendconfig) {
 			terraform.exe init
 		} else {
 			terraform.exe init -backend-config="$backendconfig"
 		}
 	}
-	if (@('full','plan') -contains $mode)
-	{
-		$varfile = Get-ConfigFile 'tfvars'
-		# if (!$varfile -and (Test-Path "*.tfvars*"))
-		# {
-		# 	if (Test-Path "*.tfvars.user") { $varfile = ".tfvars.user" } 
-		# 	elseif (Test-Path ".tfvars") { $varfile = ".tfvars"}
-		# }
-		if (!$varfile) {
-			terraform.exe plan -out="$output.tfplan"
-		} else {
-			terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
+	if ($error) {
+		Write-Verbose "$PSScriptName ERROR: $error"
+	} else {
+		Write-Verbose "plan"
+		if (@('clean','full','plan') -contains $mode) {
+			$varfile = Get-ConfigFile 'tfvars'
+			Write-Verbose "varfile:$varfile"
+			if (!$varfile) {
+				terraform.exe plan -out="$output.tfplan"
+			} else {
+				terraform.exe plan -var-file="$varfile" -out="$output.tfplan"
+			}
 		}
-	}
-	if (@('full','apply') -contains $mode)
-	{
-		terraform.exe apply "$output.tfplan"
+		if ($error) {
+
+			#needs init error? then do init!
+
+			Write-Verbose "$PSScriptName ERROR: $error"
+		} else {
+			if (@('clean','full','apply') -contains $mode)
+			{
+				terraform.exe apply "$output.tfplan"
+			}
+			
+			if ($error) {
+
+				#if needs plan then do it!
+
+				Write-Verbose "$PSScriptName ERROR: $error"
+			}
+		}
 	}
 }
 end {
-	Write-Verbose "$PSScriptName $name $output $backendconfig $varfile end"
+	Write-Verbose "$PSScriptName $path $mode $name $output $backendconfig $varfile end"
 	if ($origpath -ne $path) { Set-Location $origpath }
 }
