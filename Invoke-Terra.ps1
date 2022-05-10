@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.6
+.VERSION 0.7
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -35,6 +35,7 @@
 - 0.4 fixed paths and added $error checks
 - 0.5 added mode: Clean
 - 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
+- 0.7 added clean to init
 #>
 
 <# 
@@ -86,7 +87,7 @@ process {
 		remove-item *.terraform* -Recurse -ErrorAction "SilentlyContinue"
 	}
 	$error.Clear()	
-	if (@('full','init') -contains $mode) {
+	if (@('clean','full','init') -contains $mode) {
 		Write-Verbose "init"
 		$backendconfig = Get-ConfigFile 'tfbackend'
 		Write-Verbose "backendconfig:$backendconfig"
