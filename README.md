@@ -35,6 +35,7 @@ Invoke-Terra
 - 0.8 added -compact-warnings -input=false
 - 0.9 added *.tfplan to clean
 - 0.10 added test-path tfplan
+- 0.11 added options
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

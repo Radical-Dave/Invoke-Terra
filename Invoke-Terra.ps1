@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.10
+.VERSION 0.11
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -39,6 +39,7 @@
 - 0.8 added -compact-warnings -input=false
 - 0.9 added *.tfplan to clean
 - 0.10 added test-path tfplan
+- 0.11 added options
 #>
 
 <# 
@@ -66,7 +67,9 @@ Param(
 	[Parameter(Mandatory=$false)]
 	[string] $backendconfig = '',
 	[Parameter(Mandatory=$false)]
-	[string] $varfile = ''
+	[string] $varfile = '',
+	[Parameter(Mandatory=$false)]
+	[string] $options = '-compact-warnings -input=false'
 )
 begin {
 	$ProgressPreference = "SilentlyContinue"		
@@ -112,7 +115,7 @@ process {
 				terraform.exe plan -out="$output.tfplan"
 			} else {
 				Write-Verbose "varfile:$varfile"
-				terraform.exe plan -var-file="$varfile" -out="$output.tfplan -compact-warnings -input=false"
+				terraform.exe plan -var-file="$varfile" -out="$output.tfplan" $options
 			}
 		}
 		if ($error) {
@@ -124,7 +127,11 @@ process {
 			if (@('clean','full','apply') -contains $mode)
 			{
 				if (Test-Path "$output.tfplan") {
-					terraform.exe apply "$output.tfplan"
+					if (!$varfile) {
+						terraform.exe apply "$output.tfplan"
+					} else {
+						terraform.exe apply "$output.tfplan" $options
+					}
 				} else {
 					Write-Verbose "ERROR - $output.tfplan not found!"
 					Write-Output "ERROR - $output.tfplan not found!"
