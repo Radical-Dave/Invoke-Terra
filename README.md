@@ -36,6 +36,7 @@ Invoke-Terra
 - 0.9 added *.tfplan to clean
 - 0.10 added test-path tfplan
 - 0.11 added options
+- 0.12 added Import-Script Get-ConfigFile -Force
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

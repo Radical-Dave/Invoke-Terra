@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.11
+.VERSION 0.12
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -29,17 +29,7 @@
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
-- 0.1 init
-- 0.2 added mode: Full,Init,Plan,Apply
-- 0.3 added path param
-- 0.4 fixed paths and added $error checks
-- 0.5 added mode: Clean
-- 0.6 added -ErrorAction "SilentlyContinue" on remove-items and Write-Verbose
-- 0.7 added clean to init
-- 0.8 added -compact-warnings -input=false
-- 0.9 added *.tfplan to clean
-- 0.10 added test-path tfplan
-- 0.11 added options
+see README.md
 #>
 
 <# 
@@ -57,11 +47,11 @@ Path of package
 [CmdletBinding(SupportsShouldProcess)]
 Param(
 	[Parameter(Mandatory=$false)]
-	[string] $path = "",
+	[string] $path = '',
 	[Parameter(Mandatory=$false)] #Default/Full,Clean,Init,Plan,Apply
-	[string] $mode = "full",
+	[string] $mode = 'full',
 	[Parameter(Mandatory=$false)]
-	[string] $name = "main",
+	[string] $name = 'main',
 	[Parameter(Mandatory=$false)]
 	[string] $output = '',
 	[Parameter(Mandatory=$false)]
@@ -69,14 +59,15 @@ Param(
 	[Parameter(Mandatory=$false)]
 	[string] $varfile = '',
 	[Parameter(Mandatory=$false)]
-	[string] $options = '-compact-warnings -input=false'
+	[string] $options = '-compact-warnings'
 )
 begin {
 	$ProgressPreference = "SilentlyContinue"		
 	$ErrorActionPreference = 'Stop'
 	$PSScriptName = ($MyInvocation.MyCommand.Name.Replace(".ps1",""))
 	$PSCallingScript = if ($MyInvocation.PSCommandPath) { $MyInvocation.PSCommandPath | Split-Path -Parent } else { $null }
-	Write-Verbose "$PSScriptRoot\$PSScriptName $path $mode $name $output $backendconfig $varfile called by:$PSCallingScript"
+	Write-Verbose "$PSScriptRoot\$PSScriptName $path $mode $name $output $backendconfig $varfile $options called by:$PSCallingScript"
+	Import-Script Get-ConfigFile -Force
 }
 process {
 	if (!$output) { $output = $name }
@@ -99,9 +90,9 @@ process {
 		$backendconfig = Get-ConfigFile 'tfbackend'
 		Write-Verbose "backendconfig:$backendconfig"
 		if (!$backendconfig) {
-			terraform.exe init
+			./terraform.exe init
 		} else {
-			terraform.exe init -backend-config="$backendconfig"
+			./terraform.exe init -backend-config="$backendconfig"
 		}
 	}
 	if ($error) {
@@ -112,10 +103,14 @@ process {
 			$varfile = Get-ConfigFile 'tfvars'
 			Write-Verbose "varfile:$varfile"
 			if (!$varfile) {
-				terraform.exe plan -out="$output.tfplan"
+				./terraform.exe plan -out="$output.tfplan"
 			} else {
-				Write-Verbose "varfile:$varfile"
-				terraform.exe plan -var-file="$varfile" -out="$output.tfplan" $options
+				if (!$options) {
+					./terraform.exe plan -var-file="$varfile" -out="$output.tfplan"				
+				} else {
+					./terraform.exe plan -var-file="$varfile" $options -out="$output.tfplan"
+				}
+				Write-Verbose "plan completed:$output.tfplan exists:${(Test-Path "$output.tfplan")}"
 			}
 		}
 		if ($error) {
@@ -127,10 +122,15 @@ process {
 			if (@('clean','full','apply') -contains $mode)
 			{
 				if (Test-Path "$output.tfplan") {
+					Write-Verbose "apply"
 					if (!$varfile) {
-						terraform.exe apply "$output.tfplan"
+						./terraform.exe apply "$output.tfplan"
 					} else {
-						terraform.exe apply "$output.tfplan" $options
+						if (!$options) {
+							./terraform.exe apply "$output.tfplan"
+						} else {
+							./terraform.exe apply $options "$output.tfplan" 
+						}
 					}
 				} else {
 					Write-Verbose "ERROR - $output.tfplan not found!"
@@ -148,6 +148,6 @@ process {
 	}
 }
 end {
-	Write-Verbose "$PSScriptName $path $mode $name $output $backendconfig $varfile end"
+	Write-Verbose "$PSScriptName $path $mode $name $output $backendconfig $varfile $options end"
 	if ($origpath -ne $path) { Set-Location $origpath }
 }
