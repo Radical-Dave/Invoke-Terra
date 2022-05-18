@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.15
+.VERSION 0.16
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -115,28 +115,23 @@ process {
 				Write-Host "plan completed:$output.tfplan exists:${(Test-Path "$output.tfplan")}"
 			}
 		}
-		if ($error) {
+		if ($error -or !(Test-Path "$output.tfplan")) {
 
 			#needs init error? then do init!
 
-			Write-Host "$PSScriptName ERROR: $error"
+			Write-Host "$PSScriptName ERROR: $error or $output.tfplan not found"
 		} else {
 			if (@('clean','full','apply') -contains $mode)
 			{
-				if (Test-Path "$output.tfplan") {
-					Write-Host "apply"
-					if (!$varfile) {
+				Write-Host "apply"
+				if (!$varfile) {
+					./terraform.exe apply "$output.tfplan"
+				} else {
+					if (!$options) {
 						./terraform.exe apply "$output.tfplan"
 					} else {
-						if (!$options) {
-							./terraform.exe apply "$output.tfplan"
-						} else {
-							./terraform.exe apply $options "$output.tfplan" 
-						}
+						./terraform.exe apply $options "$output.tfplan" 
 					}
-				} else {
-					Write-Host "ERROR - $output.tfplan not found!"
-					Write-Output "ERROR - $output.tfplan not found!"
 				}
 			}
 			
