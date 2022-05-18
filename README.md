@@ -38,6 +38,7 @@ Invoke-Terra
 - 0.11 added options
 - 0.12 added Import-Script Get-ConfigFile -Force
 - 0.13 changed to Install-Script
+- 0.14 added PSScriptVersion
 
 ## Copyright
 David Walker, [Radical Dave](https://github.com/radical-dave), [Sitecore Dave](https://github.com/sitecoredave)

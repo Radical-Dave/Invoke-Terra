@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.13
+.VERSION 0.14
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -62,12 +62,14 @@ Param(
 	[string] $options = '-compact-warnings'
 )
 begin {
-	$ProgressPreference = "SilentlyContinue"		
-	$ErrorActionPreference = 'Stop'
+	$ProgressPreference = 'SilentlyContinue'
+	$Global:ErrorActionPreference = 'Stop'
 	$PSScriptName = ($MyInvocation.MyCommand.Name.Replace(".ps1",""))
+	$PSScriptVersion = (Test-ScriptFileInfo -Path $MyInvocation.MyCommand.Path | Select-Object -ExpandProperty Version)
 	$PSCallingScript = if ($MyInvocation.PSCommandPath) { $MyInvocation.PSCommandPath | Split-Path -Parent } else { $null }
-	Write-Verbose "$PSScriptRoot\$PSScriptName $path $mode $name $output $backendconfig $varfile $options called by:$PSCallingScript"
-	Install-Script Get-ConfigFile -Force
+	Write-Verbose '#####################################################'
+	Write-Host "# $PSScriptRoot/$PSScriptName $($PSScriptVersion) $path $mode $name $output $backendconfig $varfile $options called by:$PSCallingScript"
+	Install-Script Get-ConfigFile -Repository PSGallery -Force
 }
 process {
 	if (!$output) { $output = $name }
