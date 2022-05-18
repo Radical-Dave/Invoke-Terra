@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.12
+.VERSION 0.13
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -67,7 +67,7 @@ begin {
 	$PSScriptName = ($MyInvocation.MyCommand.Name.Replace(".ps1",""))
 	$PSCallingScript = if ($MyInvocation.PSCommandPath) { $MyInvocation.PSCommandPath | Split-Path -Parent } else { $null }
 	Write-Verbose "$PSScriptRoot\$PSScriptName $path $mode $name $output $backendconfig $varfile $options called by:$PSCallingScript"
-	Import-Script Get-ConfigFile -Force
+	Install-Script Get-ConfigFile -Force
 }
 process {
 	if (!$output) { $output = $name }
