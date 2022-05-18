@@ -4,7 +4,7 @@
 #####################################################
 <#PSScriptInfo
 
-.VERSION 0.14
+.VERSION 0.15
 
 .GUID 4eb31ea2-dbfd-4d66-9f6d-1d16ce6187d0
 
@@ -67,7 +67,7 @@ begin {
 	$PSScriptName = ($MyInvocation.MyCommand.Name.Replace(".ps1",""))
 	$PSScriptVersion = (Test-ScriptFileInfo -Path $MyInvocation.MyCommand.Path | Select-Object -ExpandProperty Version)
 	$PSCallingScript = if ($MyInvocation.PSCommandPath) { $MyInvocation.PSCommandPath | Split-Path -Parent } else { $null }
-	Write-Verbose '#####################################################'
+	Write-Host '#####################################################'
 	Write-Host "# $PSScriptRoot/$PSScriptName $($PSScriptVersion) $path $mode $name $output $backendconfig $varfile $options called by:$PSCallingScript"
 	Install-Script Get-ConfigFile -Repository PSGallery -Force
 }
@@ -75,22 +75,22 @@ process {
 	if (!$output) { $output = $name }
 	$origpath = $(Get-Location)
 	if ($path) {
-		Write-Verbose "Get-Location: $origpath"
-		Write-Verbose "Set-Location: $path"
+		Write-Host "Get-Location: $origpath"
+		Write-Host "Set-Location: $path"
 		Set-Location $path
 	}
-	Write-Verbose "mode: $mode"
+	Write-Host "mode: $mode"
 	if ($mode -eq "clean") {
-		Write-Verbose "cleaning"
+		Write-Host "cleaning"
 		remove-item *.tfplan -ErrorAction "SilentlyContinue"
 		remove-item terraform.tfstate -ErrorAction "SilentlyContinue"
 		remove-item *.terraform* -Recurse -ErrorAction "SilentlyContinue"
 	}
 	$error.Clear()	
 	if (@('clean','full','init') -contains $mode) {
-		Write-Verbose "init"
+		Write-Host "init"
 		$backendconfig = Get-ConfigFile 'tfbackend'
-		Write-Verbose "backendconfig:$backendconfig"
+		Write-Host "backendconfig:$backendconfig"
 		if (!$backendconfig) {
 			./terraform.exe init
 		} else {
@@ -98,12 +98,12 @@ process {
 		}
 	}
 	if ($error) {
-		Write-Verbose "$PSScriptName ERROR: $error"
+		Write-Host "$PSScriptName ERROR: $error"
 	} else {
-		Write-Verbose "plan"
+		Write-Host "plan"
 		if (@('clean','full','plan') -contains $mode) {
 			$varfile = Get-ConfigFile 'tfvars'
-			Write-Verbose "varfile:$varfile"
+			Write-Host "varfile:$varfile"
 			if (!$varfile) {
 				./terraform.exe plan -out="$output.tfplan"
 			} else {
@@ -112,19 +112,19 @@ process {
 				} else {
 					./terraform.exe plan -var-file="$varfile" $options -out="$output.tfplan"
 				}
-				Write-Verbose "plan completed:$output.tfplan exists:${(Test-Path "$output.tfplan")}"
+				Write-Host "plan completed:$output.tfplan exists:${(Test-Path "$output.tfplan")}"
 			}
 		}
 		if ($error) {
 
 			#needs init error? then do init!
 
-			Write-Verbose "$PSScriptName ERROR: $error"
+			Write-Host "$PSScriptName ERROR: $error"
 		} else {
 			if (@('clean','full','apply') -contains $mode)
 			{
 				if (Test-Path "$output.tfplan") {
-					Write-Verbose "apply"
+					Write-Host "apply"
 					if (!$varfile) {
 						./terraform.exe apply "$output.tfplan"
 					} else {
@@ -135,7 +135,7 @@ process {
 						}
 					}
 				} else {
-					Write-Verbose "ERROR - $output.tfplan not found!"
+					Write-Host "ERROR - $output.tfplan not found!"
 					Write-Output "ERROR - $output.tfplan not found!"
 				}
 			}
@@ -144,12 +144,12 @@ process {
 
 				#if needs plan then do it!
 
-				Write-Verbose "$PSScriptName ERROR: $error"
+				Write-Host "$PSScriptName ERROR: $error"
 			}
 		}
 	}
 }
 end {
-	Write-Verbose "$PSScriptName $path $mode $name $output $backendconfig $varfile $options end"
+	Write-Host "$PSScriptName $path $mode $name $output $backendconfig $varfile $options end"
 	if ($origpath -ne $path) { Set-Location $origpath }
 }
